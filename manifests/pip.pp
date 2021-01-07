@@ -50,6 +50,7 @@
 define python::pip (
   String[1]                                         $pkgname        = $name,
   Variant[Enum[present, absent, latest], String[1]] $ensure         = present,
+  Boolean                                           $greater_or_eq  = false,
   Variant[Enum['system'], Stdlib::Absolutepath]     $virtualenv     = 'system',
   String[1]                                         $pip_provider   = 'pip',
   Variant[Boolean, String]                          $url            = false,
@@ -189,7 +190,10 @@ define python::pip (
       /^((19|20)[0-9][0-9]-(0[1-9]|1[1-2])-([0-2][1-9]|3[0-1])|[0-9]+\.\w+\+?\w*(\.\w+)*)$/: {
         # Version formats as per http://guide.python-distribute.org/specification.html#standard-versioning-schemes
         # Explicit version.
-        $command        = "${pip_install} ${install_args} ${pip_common_args}==${_ensure}"
+        $command        = $greater_or_eq ? {
+          true => "${pip_install} ${install_args} ${pip_common_args}>=${_ensure}",
+          false => "${pip_install} ${install_args} ${pip_common_args}==${_ensure}"
+        }
         $unless_command = "${pip_env} list | grep -i -e '${grep_regex}'"
       }
 
